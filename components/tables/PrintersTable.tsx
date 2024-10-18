@@ -1,20 +1,58 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+interface Toner {
+  name: string;
+  stock: number;
+}
+
+interface Drum {
+  name: string;
+  stock: number;
+}
+
+interface Brand {
+  name: string;
+}
+
+interface Printer {
+  id: string;
+  name: string;
+  model: string;
+  brand: Brand;
+  toner: Toner;
+  drum: Drum;
+}
+
 export default function PrintersTable() {
-  const printerList = [
-    {
-      name: "Administrativo",
-      model: "DCP-3964",
-      brand: "Brother",
-      toner: "TN-750",
-      drum: "DR-750",
-    },
-    {
-      name: "Administrativo",
-      model: "DCP-3964",
-      brand: "Brother",
-      toner: "TN-750",
-      drum: "DR-750",
-    },
-  ];
+  const [printers, setPrinters] = useState<Printer[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPrinters = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/v1/printers");
+        if (!response.ok) {
+          throw new Error("Failed to fetch printers");
+        }
+        const data: Printer[] = await response.json();
+        setPrinters(data);
+      } catch (error) {
+        setError("Erro ao buscar as impressoras");
+      }
+    };
+
+    fetchPrinters();
+  }, []);
+
+  if (error) {
+    return <p>{error}</p>;
+  }
+
+  if (printers.length === 0) {
+    return <p>Carregando...</p>;
+  }
 
   return (
     <div className="mx-auto my-16 max-w-screen-xl px-4 md:px-8">
@@ -48,14 +86,20 @@ export default function PrintersTable() {
             </tr>
           </thead>
           <tbody className="divide-y text-gray-600">
-            {printerList.map((item, idx) => (
-              <tr key={idx}>
-                <td className="whitespace-nowrap py-4 pr-6">{item.name}</td>
-                <td className="whitespace-nowrap py-4 pr-6">{item.model}</td>
+            {printers.map((printer) => (
+              <tr key={printer.id}>
+                <td className="whitespace-nowrap py-4 pr-6">{printer.name}</td>
+                <td className="whitespace-nowrap py-4 pr-6">{printer.model}</td>
 
-                <td className="whitespace-nowrap py-4 pr-6">{item.brand}</td>
-                <td className="whitespace-nowrap py-4 pr-6">{item.toner}</td>
-                <td className="whitespace-nowrap py-4 pr-6">{item.drum}</td>
+                <td className="whitespace-nowrap py-4 pr-6">
+                  {printer.brand.name}
+                </td>
+                <td className="whitespace-nowrap py-4 pr-6">
+                  {printer.toner.name}
+                </td>
+                <td className="whitespace-nowrap py-4 pr-6">
+                  {printer.drum.name}
+                </td>
                 <td className="whitespace-nowrap text-right">
                   <a
                     href="#"

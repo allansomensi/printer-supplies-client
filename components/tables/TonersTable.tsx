@@ -1,34 +1,46 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+interface Toner {
+  id: string;
+  name: string;
+  stock: string;
+  status: string;
+  printer_count: string;
+  unit_price: string;
+}
+
 export default function TonersTable() {
-  const tonerList = [
-    {
-      name: "TN-315",
-      stock: "2",
-      status: "Suficiente",
-      printerCount: "2",
-      unitPrice: "R$ 120,00",
-    },
-    {
-      name: "TN-750",
-      stock: "3",
-      status: "Bom",
-      printerCount: "4",
-      unitPrice: "R$ 175,00",
-    },
-    {
-      name: "OKI-B431",
-      stock: "1",
-      status: "Acabando",
-      printerCount: "4",
-      unitPrice: "R$ 79,00",
-    },
-    {
-      name: "TN-3382",
-      stock: "0",
-      status: "Esgotado",
-      printerCount: "1",
-      unitPrice: "R$ 79,00",
-    },
-  ];
+  const [toners, setToners] = useState<Toner[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchToners = async () => {
+      try {
+        const response = await fetch(
+          "http://127.0.0.1:8000/api/v1/supplies/toners",
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch toners");
+        }
+        const data: Toner[] = await response.json();
+        setToners(data);
+      } catch (error) {
+        setError("Erro ao buscar os toners");
+      }
+    };
+
+    fetchToners();
+  }, []);
+
+  if (error) {
+    return <p>{error}</p>;
+  }
+
+  if (toners.length === 0) {
+    return <p>Carregando...</p>;
+  }
 
   return (
     <div className="mx-auto my-16 max-w-screen-xl px-4 md:px-8">
@@ -62,32 +74,32 @@ export default function TonersTable() {
             </tr>
           </thead>
           <tbody className="divide-y text-gray-600">
-            {tonerList.map((item, idx) => (
-              <tr key={idx}>
-                <td className="whitespace-nowrap py-4 pr-6">{item.name}</td>
-                <td className="whitespace-nowrap py-4 pr-6">{item.stock}</td>
+            {toners.map((toner) => (
+              <tr key={toner.id}>
+                <td className="whitespace-nowrap py-4 pr-6">{toner.name}</td>
+                <td className="whitespace-nowrap py-4 pr-6">{toner.stock}</td>
                 <td className="whitespace-nowrap py-4 pr-6">
                   <span
                     className={`rounded-full px-3 py-2 text-xs font-semibold ${
-                      item.status === "Bom"
+                      toner.status === "Bom"
                         ? "bg-green-50 text-green-600"
-                        : item.status === "Suficiente"
+                        : toner.status === "Suficiente"
                           ? "bg-blue-50 text-blue-600"
-                          : item.status === "Acabando"
+                          : toner.status === "Acabando"
                             ? "bg-orange-50 text-orange-600"
-                            : item.status === "Esgotado"
+                            : toner.status === "Esgotado"
                               ? "bg-red-50 text-red-600"
                               : "bg-gray-50 text-gray-600"
                     }`}
                   >
-                    {item.status}
+                    {toner.status}
                   </span>
                 </td>
                 <td className="whitespace-nowrap py-4 pr-6">
-                  {item.printerCount}
+                  {toner.printer_count}
                 </td>
                 <td className="whitespace-nowrap py-4 pr-6">
-                  {item.unitPrice}
+                  {toner.unit_price}
                 </td>
                 <td className="whitespace-nowrap text-right">
                   <a

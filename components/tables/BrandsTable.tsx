@@ -1,15 +1,39 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+interface Brand {
+  name: string;
+}
+
 export default function BrandsTable() {
-  const brandList = [
-    {
-      name: "Brother",
-    },
-    {
-      name: "Xerox",
-    },
-    {
-      name: "HP",
-    },
-  ];
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchBrands = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/v1/brands");
+        if (!response.ok) {
+          throw new Error("Failed to fetch toners");
+        }
+        const data: Brand[] = await response.json();
+        setBrands(data);
+      } catch (error) {
+        setError("Erro ao buscar os brands");
+      }
+    };
+
+    fetchBrands();
+  }, []);
+
+  if (error) {
+    return <p>{error}</p>;
+  }
+
+  if (brands.length === 0) {
+    return <p>Carregando...</p>;
+  }
 
   return (
     <div className="mx-auto my-16 max-w-screen-xl px-4 md:px-8">
@@ -39,9 +63,9 @@ export default function BrandsTable() {
             </tr>
           </thead>
           <tbody className="divide-y text-gray-600">
-            {brandList.map((item, idx) => (
+            {brands.map((brand, idx) => (
               <tr key={idx}>
-                <td className="whitespace-nowrap py-4 pr-6">{item.name}</td>
+                <td className="whitespace-nowrap py-4 pr-6">{brand.name}</td>
 
                 <td className="whitespace-nowrap text-right">
                   <a

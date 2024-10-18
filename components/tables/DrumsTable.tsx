@@ -1,34 +1,46 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+interface Drum {
+  id: string;
+  name: string;
+  stock: string;
+  status: string;
+  printer_count: string;
+  unit_price: string;
+}
+
 export default function DrumsTable() {
-  const drumList = [
-    {
-      name: "DR-315",
-      stock: "2",
-      status: "Suficiente",
-      printerCount: "2",
-      unitPrice: "R$ 200,00",
-    },
-    {
-      name: "DR-750",
-      stock: "1",
-      status: "Bom",
-      printerCount: "5",
-      unitPrice: "R$ 350,00",
-    },
-    {
-      name: "DR-B431",
-      stock: "1",
-      status: "Acabando",
-      printerCount: "4",
-      unitPrice: "R$ 160,00",
-    },
-    {
-      name: "DR-3382",
-      stock: "0",
-      status: "Esgotado",
-      printerCount: "1",
-      unitPrice: "R$ 128,00",
-    },
-  ];
+  const [drums, setDrums] = useState<Drum[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDrums = async () => {
+      try {
+        const response = await fetch(
+          "http://127.0.0.1:8000/api/v1/supplies/drums",
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch drums");
+        }
+        const data: Drum[] = await response.json();
+        setDrums(data);
+      } catch (error) {
+        setError("Erro ao buscar os cilindros");
+      }
+    };
+
+    fetchDrums();
+  }, []);
+
+  if (error) {
+    return <p>{error}</p>;
+  }
+
+  if (drums.length === 0) {
+    return <p>Carregando...</p>;
+  }
 
   return (
     <div className="mx-auto my-16 max-w-screen-xl px-4 md:px-8">
@@ -59,36 +71,35 @@ export default function DrumsTable() {
               <th className="py-3 pr-6">Status</th>
               <th className="py-3 pr-6">Usado em X impressoras</th>
               <th className="py-3 pr-6">Preço Unitário</th>
-              <th className="py-3 pr-6"></th>
             </tr>
           </thead>
           <tbody className="divide-y text-gray-600">
-            {drumList.map((item, idx) => (
-              <tr key={idx}>
-                <td className="whitespace-nowrap py-4 pr-6">{item.name}</td>
-                <td className="whitespace-nowrap py-4 pr-6">{item.stock}</td>
+            {drums.map((drum) => (
+              <tr key={drum.id}>
+                <td className="whitespace-nowrap py-4 pr-6">{drum.name}</td>
+                <td className="whitespace-nowrap py-4 pr-6">{drum.stock}</td>
                 <td className="whitespace-nowrap py-4 pr-6">
                   <span
                     className={`rounded-full px-3 py-2 text-xs font-semibold ${
-                      item.status === "Bom"
+                      drum.status === "Bom"
                         ? "bg-green-50 text-green-600"
-                        : item.status === "Suficiente"
+                        : drum.status === "Suficiente"
                           ? "bg-blue-50 text-blue-600"
-                          : item.status === "Acabando"
+                          : drum.status === "Acabando"
                             ? "bg-orange-50 text-orange-600"
-                            : item.status === "Esgotado"
+                            : drum.status === "Esgotado"
                               ? "bg-red-50 text-red-600"
                               : "bg-gray-50 text-gray-600"
                     }`}
                   >
-                    {item.status}
+                    {drum.status}
                   </span>
                 </td>
                 <td className="whitespace-nowrap py-4 pr-6">
-                  {item.printerCount}
+                  {drum.printer_count}
                 </td>
                 <td className="whitespace-nowrap py-4 pr-6">
-                  {item.unitPrice}
+                  {drum.unit_price}
                 </td>
                 <td className="whitespace-nowrap text-right">
                   <a

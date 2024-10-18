@@ -1,19 +1,54 @@
-export default function MovementsTable() {
-  const movementList = [
-    {
-      printer: "Administrativo",
-      item: "TN-750",
-      quantity: "1",
-      date: "12/09/2024 - 14:35:55",
-    },
-    {
-      printer: "Administrativo",
-      item: "TN-750",
-      quantity: "1",
-      date: "12/09/2024 - 14:35:55",
-    },
-  ];
+"use client";
 
+import { useEffect, useState } from "react";
+
+interface Item {
+  name: string;
+  stock: number;
+}
+
+interface Printer {
+  name: string;
+  model: string;
+}
+
+interface Movement {
+  id: string;
+  name: string;
+  printer: Printer;
+  item: Item;
+  quantity: number;
+  created_at: string;
+}
+
+export default function MovementsTable() {
+  const [movements, setMovements] = useState<Movement[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchMovements = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/v1/movements");
+        if (!response.ok) {
+          throw new Error("Failed to fetch movements");
+        }
+        const data: Movement[] = await response.json();
+        setMovements(data);
+      } catch (error) {
+        setError("Erro ao buscar os movimentos");
+      }
+    };
+
+    fetchMovements();
+  }, []);
+
+  if (error) {
+    return <p>{error}</p>;
+  }
+
+  if (movements.length === 0) {
+    return <p>Carregando...</p>;
+  }
   return (
     <div className="mx-auto my-16 max-w-screen-xl px-4 md:px-8">
       <div className="items-start justify-between md:flex">
@@ -45,12 +80,20 @@ export default function MovementsTable() {
             </tr>
           </thead>
           <tbody className="divide-y text-gray-600">
-            {movementList.map((item, idx) => (
-              <tr key={idx}>
-                <td className="whitespace-nowrap py-4 pr-6">{item.printer}</td>
-                <td className="whitespace-nowrap py-4 pr-6">{item.item}</td>
-                <td className="whitespace-nowrap py-4 pr-6">{item.quantity}</td>
-                <td className="whitespace-nowrap py-4 pr-6">{item.date}</td>
+            {movements.map((movement) => (
+              <tr key={movement.id}>
+                <td className="whitespace-nowrap py-4 pr-6">
+                  {movement.printer.name}
+                </td>
+                <td className="whitespace-nowrap py-4 pr-6">
+                  {movement.item.name}
+                </td>
+                <td className="whitespace-nowrap py-4 pr-6">
+                  {movement.quantity}
+                </td>
+                <td className="whitespace-nowrap py-4 pr-6">
+                  {movement.created_at}
+                </td>
                 <td className="whitespace-nowrap text-right">
                   <a
                     href="#"
